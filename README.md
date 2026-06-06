@@ -4,6 +4,12 @@ Predict telecom customer churn and surface actionable retention recommendations.
 
 **Holdout ROC-AUC: 0.916** | Recall: 0.88 | Precision: 0.56
 
+## Project background
+
+This repository is a **professional refactor** of my undergraduate group FYP for **CDS4001** (*Enterprise Customer Churn Prediction*). The original work was built in **Google Colab** as a class submission; I restructured it into a modular Python package, four analyst notebooks, a serialized production pipeline, and a Streamlit demo for portfolio and job applications.
+
+The modeling approach and results are unchanged in spirit: custom feature engineering, LR / RF / XGBoost comparison, XGBoost feature selection, and hyperparameters tuned with `RandomizedSearchCV` (ROC-AUC ~0.916 on holdout).
+
 ---
 
 ## Problem
