@@ -1,0 +1,28 @@
+paths:
+  train: data/raw/train.csv
+  test: data/raw/test.csv
+  model: models/churn_xgb_pipeline.joblib
+  metrics: outputs/metrics.json
+  predictions: outputs/predictions.csv
+
+random_state: 42
+test_size: 0.2
+
+risk_thresholds:
+  low: 0.30
+  high: 0.60
+
+xgb_best_params:
+  subsample: 0.8
+  reg_lambda: 1.5
+  reg_alpha: 0.1
+  n_estimators: 500
+  max_depth: 5
+  learning_rate: 0.05
+  gamma: 0.2
+  colsample_bytree: 0.8
+
+feature_selection:
+  n_estimators: 100
+  max_depth: 5
+  threshold: median
