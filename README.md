@@ -1,5 +1,7 @@
 # Enterprise Customer Churn
 
+**GitHub:** [github.com/Rickylam0303/enterprise-customer-churn](https://github.com/Rickylam0303/enterprise-customer-churn) · **Live demo:** [enterprise-customer-churn-9wmrp4azyunsxvecvfpdxa.streamlit.app](https://enterprise-customer-churn-9wmrp4azyunsxvecvfpdxa.streamlit.app)
+
 Predict telecom customer churn and surface actionable retention recommendations. Built as a portfolio project from the [Kaggle Playground Series S6E3](https://www.kaggle.com/competitions/playground-series-s6e3) competition (~594k training rows).
 
 **Holdout ROC-AUC: 0.916** | Recall: 0.88 | Precision: 0.56
@@ -36,6 +38,12 @@ From exploratory analysis (`notebooks/01_eda_and_business_insights.ipynb`):
 3. **Electronic check** payers show the highest churn among payment methods — autopay incentives help.
 4. **First-year customers** are especially fragile — proactive onboarding reduces early exits.
 5. **High monthly charges + short tenure** signal price-driven churn — targeted loyalty offers help.
+
+| Overall churn mix | Churn by contract type |
+|---|---|
+| ![Churn distribution](outputs/figures/churn_distribution.png) | ![Churn by contract](outputs/figures/churn_by_contract.png) |
+
+![Churn by internet service](outputs/figures/churn_by_internetservice.png)
 
 ## Solution
 
@@ -74,9 +82,9 @@ Metrics from a stratified 80/20 holdout on the full training set. See `outputs/m
 
 ## Quick start
 
+Run these from the **project root** (`FYP project/`) in **Cursor’s terminal** or **Anaconda Prompt** — both work as long as your conda env is active:
+
 ```bash
-# Create environment (or use existing conda env)
-conda create -n churn-portfolio python=3.11 -y
 conda activate churn-portfolio
 pip install -r requirements.txt
 
@@ -85,21 +93,15 @@ pip install -r requirements.txt
 # Train production pipeline (~5 min on full data)
 python -m src.train
 
-# Launch interactive demo
+# Launch interactive demo locally
 streamlit run app/streamlit_app.py
 ```
 
 ## Live demo
 
-Deploy to [Streamlit Community Cloud](https://streamlit.io/cloud) (free):
+**[Open the app →](https://enterprise-customer-churn-9wmrp4azyunsxvecvfpdxa.streamlit.app)**
 
-1. Push this repo to GitHub (exclude large CSVs — already in `.gitignore`).
-2. On Streamlit Cloud, click **New app** → connect the repo.
-3. Set **Main file path** to `app/streamlit_app.py`.
-4. Add the trained model: either commit a small sample model or run training in a Cloud build step. For this project, **train locally** and upload `models/churn_xgb_pipeline.joblib` via Git LFS or run `python -m src.train` in a one-off Cloud shell if your plan allows.
-5. Copy the deployed URL into this section:
-
-**Live app:** _[Add your Streamlit Cloud URL here]_
+Hosted on [Streamlit Community Cloud](https://streamlit.io/cloud). Enter a customer profile to get churn probability, risk band, and retention recommendations.
 
 ## Project structure
 
