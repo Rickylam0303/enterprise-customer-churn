@@ -9,7 +9,7 @@ paths:
 portfolio:
   github: https://github.com/Rickylam0303/enterprise-customer-churn
   streamlit: https://enterprise-customer-churn-9wmrp4azyunsxvecvfpdxa.streamlit.app
-  power_bi: ""  # Paste published report URL after power-bi/PUBLISH.md step 6
+  power_bi: https://github.com/Rickylam0303/enterprise-customer-churn/tree/master/power-bi  # .pbix on GitHub (no Service publish — personal account)
 
 random_state: 42
 test_size: 0.2

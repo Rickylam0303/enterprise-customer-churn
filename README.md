@@ -1,6 +1,6 @@
 # Enterprise Customer Churn
 
-**GitHub:** [github.com/Rickylam0303/enterprise-customer-churn](https://github.com/Rickylam0303/enterprise-customer-churn) · **Streamlit:** [Live demo](https://enterprise-customer-churn-9wmrp4azyunsxvecvfpdxa.streamlit.app) · **Power BI:** *[Publish link — see `power-bi/PUBLISH.md` and set `portfolio.power_bi` in `config.yaml`]*
+**GitHub:** [github.com/Rickylam0303/enterprise-customer-churn](https://github.com/Rickylam0303/enterprise-customer-churn) · **Streamlit:** [Live demo](https://enterprise-customer-churn-9wmrp4azyunsxvecvfpdxa.streamlit.app) · **Power BI:** [`.pbix` on GitHub](https://github.com/Rickylam0303/enterprise-customer-churn/tree/master/power-bi)
 
 Predict telecom customer churn and surface actionable retention recommendations. Built as a portfolio project from the [Kaggle Playground Series S6E3](https://www.kaggle.com/competitions/playground-series-s6e3) competition (~594k training rows).
 
@@ -115,13 +115,6 @@ Two-page report in [`power-bi/Executive Overview.pbix`](power-bi/Executive%20Ove
 
 1. **Executive Overview** — KPIs, slicers, segment churn, ML predicted risk
 2. **Retention Playbook** — contract × tenure matrix, price sensitivity, service bundles, top-risk table
-
-| Doc | Purpose |
-|-----|---------|
-| [`power-bi/DASHBOARD_REVIEW.md`](power-bi/DASHBOARD_REVIEW.md) | Final review — ✅ portfolio-ready |
-| [`power-bi/PUBLISH.md`](power-bi/PUBLISH.md) | **Your steps** to publish and get a public link |
-
-**You still need to:** publish to Power BI Service → copy link → set `portfolio.power_bi` in `config.yaml` → update the header line above.
 
 ## Project structure
 
