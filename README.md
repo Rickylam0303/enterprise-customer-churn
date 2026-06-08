@@ -1,6 +1,6 @@
 # Enterprise Customer Churn
 
-**GitHub:** [github.com/Rickylam0303/enterprise-customer-churn](https://github.com/Rickylam0303/enterprise-customer-churn) · **Live demo:** [enterprise-customer-churn-9wmrp4azyunsxvecvfpdxa.streamlit.app](https://enterprise-customer-churn-9wmrp4azyunsxvecvfpdxa.streamlit.app)
+**GitHub:** [github.com/Rickylam0303/enterprise-customer-churn](https://github.com/Rickylam0303/enterprise-customer-churn) · **Streamlit:** [Live demo](https://enterprise-customer-churn-9wmrp4azyunsxvecvfpdxa.streamlit.app) · **Power BI:** *[Publish link — see `power-bi/PUBLISH.md` and set `portfolio.power_bi` in `config.yaml`]*
 
 Predict telecom customer churn and surface actionable retention recommendations. Built as a portfolio project from the [Kaggle Playground Series S6E3](https://www.kaggle.com/competitions/playground-series-s6e3) competition (~594k training rows).
 
@@ -56,6 +56,8 @@ flowchart LR
   select --> clf[Tuned XGBClassifier]
   clf --> artifact[joblib pipeline]
   artifact --> app[Streamlit demo]
+  artifact --> export[BI predictions CSV]
+  export --> pbi[Power BI dashboard]
 ```
 
 **Model choice:** XGBoost with `scale_pos_weight` for class imbalance and `SelectFromModel` feature selection. Tuned via 50-iteration `RandomizedSearchCV` (documented in `notebooks/04_production_pipeline.ipynb`). Production training uses **frozen hyperparameters** in `config.yaml` — no search at deploy time.
@@ -78,6 +80,7 @@ Metrics from a stratified 80/20 holdout on the full training set. See `outputs/m
 - Python 3.11, pandas, scikit-learn, XGBoost
 - Jupyter notebooks for analyst storytelling
 - Streamlit for business-facing demo
+- Power BI for retention analytics + ML predicted risk view
 - joblib for model serialization
 
 ## Quick start
@@ -93,6 +96,9 @@ pip install -r requirements.txt
 # Train production pipeline (~5 min on full data)
 python -m src.train
 
+# Export predictions for Power BI (id, Churn, predicted_proba, risk_band)
+python -m src.export_predictions
+
 # Launch interactive demo locally
 streamlit run app/streamlit_app.py
 ```
@@ -103,11 +109,31 @@ streamlit run app/streamlit_app.py
 
 Hosted on [Streamlit Community Cloud](https://streamlit.io/cloud). Enter a customer profile to get churn probability, risk band, and retention recommendations.
 
+## Power BI dashboard
+
+Two-page report in [`power-bi/Executive Overview.pbix`](power-bi/Executive%20Overview.pbix):
+
+1. **Executive Overview** — KPIs, slicers, segment churn, ML predicted risk
+2. **Retention Playbook** — contract × tenure matrix, price sensitivity, service bundles, top-risk table
+
+| Doc | Purpose |
+|-----|---------|
+| [`power-bi/DASHBOARD_REVIEW.md`](power-bi/DASHBOARD_REVIEW.md) | Final review — ✅ portfolio-ready |
+| [`power-bi/PUBLISH.md`](power-bi/PUBLISH.md) | **Your steps** to publish and get a public link |
+
+**You still need to:** publish to Power BI Service → copy link → set `portfolio.power_bi` in `config.yaml` → update the header line above.
+
 ## Project structure
 
 ```
 ├── app/
 │   └── streamlit_app.py       # Business churn risk demo
+├── power-bi/
+│   ├── Executive Overview.pbix # 2-page dashboard (Executive + Retention Playbook)
+│   ├── DASHBOARD_REVIEW.md    # Review and publish checklist
+│   ├── PUBLISH.md             # Publish to Power BI Service
+│   ├── queries/LoadTrain.m    # Power Query + ML join
+│   └── measures/ChurnMeasures.dax
 ├── config.yaml                # Paths, hyperparameters, risk thresholds
 ├── data/raw/                  # Kaggle CSVs (not committed)
 ├── models/                    # Serialized pipeline (generated)
@@ -126,7 +152,8 @@ Hosted on [Streamlit Community Cloud](https://streamlit.io/cloud). Enter a custo
 │   ├── preprocessing.py
 │   ├── models.py
 │   ├── evaluation.py
-│   └── train.py               # CLI: python -m src.train
+│   ├── train.py               # CLI: python -m src.train
+│   └── export_predictions.py  # CLI: python -m src.export_predictions
 └── requirements.txt
 ```
 

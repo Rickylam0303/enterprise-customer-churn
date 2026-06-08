@@ -4,6 +4,12 @@ paths:
   model: models/churn_xgb_pipeline.joblib
   metrics: outputs/metrics.json
   predictions: outputs/predictions.csv
+  bi_predictions: outputs/bi_train_predictions.csv
+
+portfolio:
+  github: https://github.com/Rickylam0303/enterprise-customer-churn
+  streamlit: https://enterprise-customer-churn-9wmrp4azyunsxvecvfpdxa.streamlit.app
+  power_bi: ""  # Paste published report URL after power-bi/PUBLISH.md step 6
 
 random_state: 42
 test_size: 0.2

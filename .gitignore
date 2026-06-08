@@ -6,6 +6,7 @@ models/*.joblib
 
 # Outputs
 outputs/predictions.csv
+outputs/bi_train_predictions.csv
 
 # Python
 __pycache__/
@@ -32,3 +33,19 @@ Thumbs.db
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Local archive (FYP originals, PBIX dev scratch — not for public repo)
+preserve/
+
+# Power BI dev scratch (keep only Executive Overview.pbix in repo)
+power-bi/*.backup.pbix
+power-bi/*.rearranged*.pbix
+power-bi/*.tmp.pbix
+power-bi/pbix_extract/
+power-bi/pbix_layout_parsed.json
+power-bi/_review_pbix.py
+power-bi/inspect_pbix.py
+power-bi/inventory_pbix.py
+power-bi/rearrange_pbix.py
+power-bi/LAYOUT*.md
+power-bi/MANUAL_LAYOUT.md

@@ -1,0 +1,213 @@
+// DAX measures for Retention & Churn Analytics dashboard
+// Table name: train (rename in Power BI if your query differs)
+// Home → Enter data → paste each measure, or use Tabular Editor / Modeling tab
+
+// ============================================================================
+// Display folder: Churn Metrics — Core KPIs
+// ============================================================================
+
+Total Customers =
+COUNTROWS ( train )
+
+Churned Customers =
+CALCULATE (
+    COUNTROWS ( train ),
+    train[Churn] = "Yes"
+)
+
+Retained Customers =
+CALCULATE (
+    COUNTROWS ( train ),
+    train[Churn] = "No"
+)
+
+Churn Rate =
+DIVIDE ( [Churned Customers], [Total Customers] )
+
+At Risk Count =
+[Churned Customers]
+
+Avg Tenure =
+AVERAGE ( train[tenure] )
+
+Avg Monthly Charges =
+AVERAGE ( train[MonthlyCharges] )
+
+Avg Total Charges =
+AVERAGE ( train[TotalCharges] )
+
+// ============================================================================
+// Display folder: Churn Metrics — Segment-level churn
+// (evaluate in matrix, bar chart, or table row/column context)
+// ============================================================================
+
+Segment Customer Count =
+COUNTROWS ( train )
+
+Segment Churned Count =
+CALCULATE (
+    COUNTROWS ( train ),
+    train[Churn] = "Yes"
+)
+
+Segment Churn Rate =
+DIVIDE ( [Segment Churned Count], [Segment Customer Count] )
+
+Segment Retained Count =
+CALCULATE (
+    COUNTROWS ( train ),
+    train[Churn] = "No"
+)
+
+// Dimension-specific segment churn (convenience for card subtitles)
+Churn Rate by Contract =
+CALCULATE (
+    [Churn Rate],
+    ALLEXCEPT ( train, train[Contract] )
+)
+
+Churn Rate by Internet Service =
+CALCULATE (
+    [Churn Rate],
+    ALLEXCEPT ( train, train[InternetService] )
+)
+
+Churn Rate by Payment Method =
+CALCULATE (
+    [Churn Rate],
+    ALLEXCEPT ( train, train[PaymentMethod] )
+)
+
+Churn Rate by Tenure Bucket =
+CALCULATE (
+    [Churn Rate],
+    ALLEXCEPT ( train, train[tenure_bucket] )
+)
+
+Churn Rate by Service Count =
+CALCULATE (
+    [Churn Rate],
+    ALLEXCEPT ( train, train[service_count] )
+)
+
+// ============================================================================
+// Display folder: Churn Metrics — Retention playbook
+// ============================================================================
+
+// Minimum sample size for segment tables (plan: count >= threshold)
+Segment Min Count Threshold = 1000
+
+Is Valid Segment =
+[Segment Customer Count] >= [Segment Min Count Threshold]
+
+// For Top 5 highest-risk segments table — filter rows where sample is large enough
+Valid Segment Churn Rate =
+IF (
+    [Is Valid Segment],
+    [Segment Churn Rate],
+    BLANK ()
+)
+
+// Rank segments by churn rate within current filter context
+Segment Churn Rank =
+IF (
+    [Is Valid Segment],
+    RANKX (
+        ALLSELECTED ( train ),
+        [Segment Churn Rate],
+        ,
+        DESC,
+        DENSE
+    ),
+    BLANK ()
+)
+
+// Flag hottest contract × tenure cells in matrix conditional formatting
+High Risk Segment =
+[Segment Churn Rate] >= 0.30 && [Is Valid Segment]
+
+// Service stickiness: avg services for churned vs retained
+Avg Services Churned =
+CALCULATE (
+    AVERAGE ( train[service_count] ),
+    train[Churn] = "Yes"
+)
+
+Avg Services Retained =
+CALCULATE (
+    AVERAGE ( train[service_count] ),
+    train[Churn] = "No"
+)
+
+// ============================================================================
+// Display folder: Churn Metrics — Period comparison helpers (static baseline)
+// ============================================================================
+
+Overall Churn Rate (All) =
+CALCULATE (
+    [Churn Rate],
+    ALL ( train )
+)
+
+Churn Rate vs Overall =
+[Segment Churn Rate] - [Overall Churn Rate (All)]
+
+// ============================================================================
+// Display folder: ML Predictions — Predicted risk view (joined from Python)
+// Export: python -m src.export_predictions → outputs/bi_train_predictions.csv
+// ============================================================================
+
+Avg Predicted Churn Probability =
+AVERAGE ( train[predicted_proba] )
+
+Predicted Low Risk Count =
+CALCULATE (
+    COUNTROWS ( train ),
+    train[risk_band] = "Low"
+)
+
+Predicted Medium Risk Count =
+CALCULATE (
+    COUNTROWS ( train ),
+    train[risk_band] = "Medium"
+)
+
+Predicted High Risk Count =
+CALCULATE (
+    COUNTROWS ( train ),
+    train[risk_band] = "High"
+)
+
+// KPI: customers flagged High by XGBoost (matches Streamlit risk band)
+ML At Risk Count =
+[Predicted High Risk Count]
+
+Predicted High Risk Rate =
+DIVIDE ( [Predicted High Risk Count], [Total Customers] )
+
+Predicted Medium+ Risk Count =
+[Predicted Medium Risk Count] + [Predicted High Risk Count]
+
+Predicted Medium+ Risk Rate =
+DIVIDE ( [Predicted Medium+ Risk Count], [Total Customers] )
+
+// Segment-context ML metrics (for matrix / bar charts)
+Segment Avg Predicted Probability =
+AVERAGE ( train[predicted_proba] )
+
+Segment Predicted High Risk Count =
+CALCULATE (
+    COUNTROWS ( train ),
+    train[risk_band] = "High"
+)
+
+Segment Predicted High Risk Rate =
+DIVIDE ( [Segment Predicted High Risk Count], [Segment Customer Count] )
+
+// Compare actual churn vs model score in segment context
+Segment Actual vs Predicted Gap =
+[Segment Churn Rate] - [Segment Avg Predicted Probability]
+
+// Model calibration check: avg predicted proba should track actual churn rate
+Calibration Gap =
+[Churn Rate] - [Avg Predicted Churn Probability]
