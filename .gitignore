@@ -37,6 +37,11 @@ Thumbs.db
 # Local archive (FYP originals, PBIX dev scratch — not for public repo)
 preserve/
 
+# Local-only notes (keep on disk, not on GitHub)
+power-bi/DASHBOARD_REVIEW.md
+power-bi/PUBLISH.md
+images/README.md
+
 # Power BI dev scratch (keep only Executive Overview.pbix in repo)
 power-bi/*.backup.pbix
 power-bi/*.rearranged*.pbix
