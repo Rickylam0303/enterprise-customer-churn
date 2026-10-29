@@ -1,24 +1,587 @@
 {
-  "model": "xgboost_select_from_model",
+  "schema_version": 2,
+  "run_id": "20261027T175000746489Z-71d14d34",
+  "model": "xgboost_fs_sigmoid",
   "random_state": 42,
   "test_size": 0.2,
   "n_samples": 594194,
-  "scale_pos_weight": 3.440347638939746,
-  "holdout_metrics": {
-    "accuracy": 0.8167604910845766,
-    "precision": 0.5592097452093178,
-    "recall": 0.8799461943728282,
-    "f1": 0.6838376212323596,
-    "roc_auc": 0.9157257232436538
+  "n_train": 475355,
+  "n_holdout": 118839,
+  "input_data": {
+    "path": "C:\\Users\\6c10r\\Personal\\02_projects\\01_data\\FYP_project\\data\\raw\\train.csv",
+    "sha256": "71d14d34d3e857da95cc092d55c4ef563bb7f43c6d866be34801dbdad2b40938"
   },
-  "xgb_params": {
-    "subsample": 0.8,
-    "reg_lambda": 1.5,
-    "reg_alpha": 0.1,
-    "n_estimators": 500,
-    "max_depth": 5,
-    "learning_rate": 0.05,
-    "gamma": 0.2,
-    "colsample_bytree": 0.8
-  }
+  "config_file": {
+    "path": "C:\\Users\\6c10r\\Personal\\02_projects\\01_data\\FYP_project\\config.yaml",
+    "sha256": "5080f08f288b32abcdcdca2aaec5a054c15f9a0ec76116a59243d089e505dbaa"
+  },
+  "evaluation_method": {
+    "split": "stratified random holdout",
+    "default_threshold": 0.5,
+    "selected_thresholds": [
+      0.3,
+      0.5,
+      0.6
+    ],
+    "threshold_selection": "prespecified; no holdout optimization or cost claim",
+    "model_selection": "fixed xgboost_fs_sigmoid recipe; comparison is diagnostic, not holdout-based selection",
+    "comparison_population": "same full outer-fit set and outer-holdout set for every row",
+    "historical_tuning": "Original Colab search/holdout reuse cannot be reconstructed; frozen parameters are not proven optimal."
+  },
+  "calibration": {
+    "method": "sigmoid",
+    "folds": 3,
+    "ensemble": false,
+    "fit": "OOF scores within fit set; base then refit on that full fit set",
+    "holdout_used_for_fit": false
+  },
+  "risk_thresholds": {
+    "low": 0.3,
+    "high": 0.6
+  },
+  "evaluation_scale_pos_weight": 3.4403291796663367,
+  "scale_pos_weight": 3.440347638939746,
+  "feature_engineering": {
+    "evaluation": {
+      "monthly_median": 74.15,
+      "tenure_median": 35.0,
+      "encoded_count": 57,
+      "selected_count": 29,
+      "senior_citizen_encoded": true,
+      "senior_citizen_selected": true,
+      "selected_features": [
+        "num__SeniorCitizen",
+        "num__tenure",
+        "num__MonthlyCharges",
+        "num__TotalCharges",
+        "num__avg_monthly_spend",
+        "num__tenure_x_monthly",
+        "num__mtm_early",
+        "num__electronic_check",
+        "num__high_value",
+        "num__missing_online_sec",
+        "cat__Dependents_No",
+        "cat__PhoneService_No",
+        "cat__MultipleLines_No",
+        "cat__MultipleLines_Yes",
+        "cat__InternetService_DSL",
+        "cat__InternetService_Fiber optic",
+        "cat__OnlineSecurity_Yes",
+        "cat__OnlineBackup_No",
+        "cat__DeviceProtection_No",
+        "cat__TechSupport_No",
+        "cat__TechSupport_Yes",
+        "cat__StreamingTV_No",
+        "cat__StreamingTV_Yes",
+        "cat__StreamingMovies_No",
+        "cat__StreamingMovies_Yes",
+        "cat__Contract_Month-to-month",
+        "cat__Contract_One year",
+        "cat__Contract_Two year",
+        "cat__PaperlessBilling_No"
+      ],
+      "scale_pos_weight": 3.4403291796663367
+    },
+    "production": {
+      "monthly_median": 74.1,
+      "tenure_median": 35.0,
+      "encoded_count": 57,
+      "selected_count": 29,
+      "senior_citizen_encoded": true,
+      "senior_citizen_selected": true,
+      "selected_features": [
+        "num__SeniorCitizen",
+        "num__tenure",
+        "num__MonthlyCharges",
+        "num__TotalCharges",
+        "num__avg_monthly_spend",
+        "num__tenure_x_monthly",
+        "num__electronic_check",
+        "num__high_value",
+        "num__missing_online_sec",
+        "cat__Dependents_No",
+        "cat__PhoneService_No",
+        "cat__MultipleLines_No",
+        "cat__MultipleLines_Yes",
+        "cat__InternetService_DSL",
+        "cat__InternetService_Fiber optic",
+        "cat__OnlineSecurity_Yes",
+        "cat__OnlineBackup_No",
+        "cat__DeviceProtection_No",
+        "cat__DeviceProtection_Yes",
+        "cat__TechSupport_No",
+        "cat__StreamingTV_No",
+        "cat__StreamingTV_Yes",
+        "cat__StreamingMovies_No",
+        "cat__StreamingMovies_Yes",
+        "cat__Contract_Month-to-month",
+        "cat__Contract_One year",
+        "cat__Contract_Two year",
+        "cat__PaperlessBilling_No",
+        "cat__PaymentMethod_Mailed check"
+      ],
+      "scale_pos_weight": 3.440347638939746
+    }
+  },
+  "holdout_metrics": {
+    "model": "xgboost_fs_sigmoid",
+    "fit_rows": 475355,
+    "holdout_rows": 118839,
+    "threshold": 0.5,
+    "accuracy": 0.8594821565311052,
+    "precision": 0.6802421376889461,
+    "recall": 0.709599073347532,
+    "f1": 0.6946105594264919,
+    "roc_auc": 0.9165016120646284,
+    "average_precision": 0.7545639120160819,
+    "brier": 0.09647965107382234,
+    "log_loss": 0.3041279338890946
+  },
+  "uncalibrated_holdout_metrics": {
+    "model": "xgboost_fs_raw",
+    "fit_rows": 475355,
+    "holdout_rows": 118839,
+    "threshold": 0.5,
+    "accuracy": 0.8179301407787006,
+    "precision": 0.5611081970339993,
+    "recall": 0.8793483540709188,
+    "f1": 0.6850738665308201,
+    "roc_auc": 0.9165016120646284,
+    "average_precision": 0.7545639120160819,
+    "brier": 0.12282883375883102,
+    "log_loss": 0.37305131554603577
+  },
+  "model_comparison": [
+    {
+      "model": "logistic_regression",
+      "fit_rows": 475355,
+      "holdout_rows": 118839,
+      "threshold": 0.5,
+      "accuracy": 0.8100118647918613,
+      "precision": 0.5487659931482906,
+      "recall": 0.8798340993162201,
+      "f1": 0.675938684119876,
+      "roc_auc": 0.9105728089207881,
+      "average_precision": 0.7347269067772548,
+      "brier": 0.1279716180215157,
+      "log_loss": 0.3870560861824044
+    },
+    {
+      "model": "random_forest",
+      "fit_rows": 475355,
+      "holdout_rows": 118839,
+      "threshold": 0.5,
+      "accuracy": 0.8139331364282769,
+      "precision": 0.5547189345631662,
+      "recall": 0.8808803198445615,
+      "f1": 0.6807484623603131,
+      "roc_auc": 0.9136226963243985,
+      "average_precision": 0.7453870483404395,
+      "brier": 0.12495972962375597,
+      "log_loss": 0.378014084362254
+    },
+    {
+      "model": "xgboost_no_fs",
+      "fit_rows": 475355,
+      "holdout_rows": 118839,
+      "threshold": 0.5,
+      "accuracy": 0.8177534311126818,
+      "precision": 0.5607839401805063,
+      "recall": 0.8799088293539589,
+      "f1": 0.6850020361859329,
+      "roc_auc": 0.9165393358162477,
+      "average_precision": 0.7546875832012439,
+      "brier": 0.1228269562125206,
+      "log_loss": 0.3729383647441864
+    },
+    {
+      "model": "xgboost_fs_raw",
+      "fit_rows": 475355,
+      "holdout_rows": 118839,
+      "threshold": 0.5,
+      "accuracy": 0.8179301407787006,
+      "precision": 0.5611081970339993,
+      "recall": 0.8793483540709188,
+      "f1": 0.6850738665308201,
+      "roc_auc": 0.9165016120646284,
+      "average_precision": 0.7545639120160819,
+      "brier": 0.12282883375883102,
+      "log_loss": 0.37305131554603577
+    },
+    {
+      "model": "xgboost_fs_sigmoid",
+      "fit_rows": 475355,
+      "holdout_rows": 118839,
+      "threshold": 0.5,
+      "accuracy": 0.8594821565311052,
+      "precision": 0.6802421376889461,
+      "recall": 0.709599073347532,
+      "f1": 0.6946105594264919,
+      "roc_auc": 0.9165016120646284,
+      "average_precision": 0.7545639120160819,
+      "brier": 0.09647965107382234,
+      "log_loss": 0.3041279338890946
+    }
+  ],
+  "threshold_metrics": [
+    {
+      "model": "logistic_regression",
+      "threshold": 0.3,
+      "n": 118839,
+      "selected": 53341,
+      "workload": 0.4488509664335782,
+      "tn": 64011,
+      "fp": 28065,
+      "fn": 1487,
+      "tp": 25276,
+      "precision": 0.47385688307305823,
+      "recall": 0.9444382169412996,
+      "f1": 0.6310795965245182
+    },
+    {
+      "model": "logistic_regression",
+      "threshold": 0.5,
+      "n": 118839,
+      "selected": 42909,
+      "workload": 0.36106833615227324,
+      "tn": 72714,
+      "fp": 19362,
+      "fn": 3216,
+      "tp": 23547,
+      "precision": 0.5487659931482906,
+      "recall": 0.8798340993162201,
+      "f1": 0.675938684119876
+    },
+    {
+      "model": "logistic_regression",
+      "threshold": 0.6,
+      "n": 118839,
+      "selected": 37250,
+      "workload": 0.3134492885332256,
+      "tn": 76899,
+      "fp": 15177,
+      "fn": 4690,
+      "tp": 22073,
+      "precision": 0.5925637583892618,
+      "recall": 0.824758061502821,
+      "f1": 0.6896411666380267
+    },
+    {
+      "model": "random_forest",
+      "threshold": 0.3,
+      "n": 118839,
+      "selected": 53888,
+      "workload": 0.45345383249606613,
+      "tn": 63591,
+      "fp": 28485,
+      "fn": 1360,
+      "tp": 25403,
+      "precision": 0.47140365201900236,
+      "recall": 0.9491835743377051,
+      "f1": 0.6299487917074804
+    },
+    {
+      "model": "random_forest",
+      "threshold": 0.5,
+      "n": 118839,
+      "selected": 42499,
+      "workload": 0.35761829029190756,
+      "tn": 73152,
+      "fp": 18924,
+      "fn": 3188,
+      "tp": 23575,
+      "precision": 0.5547189345631662,
+      "recall": 0.8808803198445615,
+      "f1": 0.6807484623603131
+    },
+    {
+      "model": "random_forest",
+      "threshold": 0.6,
+      "n": 118839,
+      "selected": 36663,
+      "workload": 0.30850983263070203,
+      "tn": 77462,
+      "fp": 14614,
+      "fn": 4714,
+      "tp": 22049,
+      "precision": 0.6013965032866923,
+      "recall": 0.823861301049957,
+      "f1": 0.6952669252357078
+    },
+    {
+      "model": "xgboost_no_fs",
+      "threshold": 0.3,
+      "n": 118839,
+      "selected": 52884,
+      "workload": 0.44500542751117056,
+      "tn": 64557,
+      "fp": 27519,
+      "fn": 1398,
+      "tp": 25365,
+      "precision": 0.47963467211254823,
+      "recall": 0.9477637036206703,
+      "f1": 0.6369354777957739
+    },
+    {
+      "model": "xgboost_no_fs",
+      "threshold": 0.5,
+      "n": 118839,
+      "selected": 41993,
+      "workload": 0.3533604288154562,
+      "tn": 73632,
+      "fp": 18444,
+      "fn": 3214,
+      "tp": 23549,
+      "precision": 0.5607839401805063,
+      "recall": 0.8799088293539589,
+      "f1": 0.6850020361859329
+    },
+    {
+      "model": "xgboost_no_fs",
+      "threshold": 0.6,
+      "n": 118839,
+      "selected": 36558,
+      "workload": 0.3076262843006084,
+      "tn": 77654,
+      "fp": 14422,
+      "fn": 4627,
+      "tp": 22136,
+      "precision": 0.6055035833470103,
+      "recall": 0.8271120576915891,
+      "f1": 0.6991677326637292
+    },
+    {
+      "model": "xgboost_fs_raw",
+      "threshold": 0.3,
+      "n": 118839,
+      "selected": 52915,
+      "workload": 0.44526628463719825,
+      "tn": 64524,
+      "fp": 27552,
+      "fn": 1400,
+      "tp": 25363,
+      "precision": 0.4793158839648493,
+      "recall": 0.9476889735829317,
+      "f1": 0.6366374657998444
+    },
+    {
+      "model": "xgboost_fs_raw",
+      "threshold": 0.5,
+      "n": 118839,
+      "selected": 41942,
+      "workload": 0.3529312767694107,
+      "tn": 73668,
+      "fp": 18408,
+      "fn": 3229,
+      "tp": 23534,
+      "precision": 0.5611081970339993,
+      "recall": 0.8793483540709188,
+      "f1": 0.6850738665308201
+    },
+    {
+      "model": "xgboost_fs_raw",
+      "threshold": 0.6,
+      "n": 118839,
+      "selected": 36561,
+      "workload": 0.30765152853861105,
+      "tn": 77624,
+      "fp": 14452,
+      "fn": 4654,
+      "tp": 22109,
+      "precision": 0.6047154071278138,
+      "recall": 0.8261032021821171,
+      "f1": 0.6982818520624092
+    },
+    {
+      "model": "xgboost_fs_sigmoid",
+      "threshold": 0.3,
+      "n": 118839,
+      "selected": 37202,
+      "workload": 0.3130453807251828,
+      "tn": 77184,
+      "fp": 14892,
+      "fn": 4453,
+      "tp": 22310,
+      "precision": 0.599698940917155,
+      "recall": 0.8336135709748533,
+      "f1": 0.6975689830375987
+    },
+    {
+      "model": "xgboost_fs_sigmoid",
+      "threshold": 0.5,
+      "n": 118839,
+      "selected": 27918,
+      "workload": 0.23492287885290183,
+      "tn": 83149,
+      "fp": 8927,
+      "fn": 7772,
+      "tp": 18991,
+      "precision": 0.6802421376889461,
+      "recall": 0.709599073347532,
+      "f1": 0.6946105594264919
+    },
+    {
+      "model": "xgboost_fs_sigmoid",
+      "threshold": 0.6,
+      "n": 118839,
+      "selected": 21901,
+      "workload": 0.18429135216553488,
+      "tn": 86240,
+      "fp": 5836,
+      "fn": 10698,
+      "tp": 16065,
+      "precision": 0.7335281493995708,
+      "recall": 0.6002690281358593,
+      "f1": 0.6602416570771001
+    }
+  ],
+  "calibration_metrics": {
+    "logistic_regression": {
+      "brier": 0.1279716180215157,
+      "log_loss": 0.3870560861824044,
+      "ece_10_equal_width": 0.13021580331769436,
+      "mean_score": 0.355419650539566,
+      "actual_rate": 0.22520384722187162
+    },
+    "random_forest": {
+      "brier": 0.12495972962375597,
+      "log_loss": 0.378014084362254,
+      "ece_10_equal_width": 0.12782344523239844,
+      "mean_score": 0.35302729245427006,
+      "actual_rate": 0.22520384722187162
+    },
+    "xgboost_no_fs": {
+      "brier": 0.1228269562125206,
+      "log_loss": 0.3729383647441864,
+      "ece_10_equal_width": 0.12472159011961298,
+      "mean_score": 0.3499254286289215,
+      "actual_rate": 0.22520384722187162
+    },
+    "xgboost_fs_raw": {
+      "brier": 0.12282883375883102,
+      "log_loss": 0.37305131554603577,
+      "ece_10_equal_width": 0.12479657830382723,
+      "mean_score": 0.35000044107437134,
+      "actual_rate": 0.22520384722187162
+    },
+    "xgboost_fs_sigmoid": {
+      "brier": 0.09647965107382234,
+      "log_loss": 0.3041279338890946,
+      "ece_10_equal_width": 0.019397681485362528,
+      "mean_score": 0.22600843418572403,
+      "actual_rate": 0.22520384722187162
+    }
+  },
+  "parameters": {
+    "xgboost": {
+      "subsample": 0.8,
+      "reg_lambda": 1.5,
+      "reg_alpha": 0.1,
+      "n_estimators": 500,
+      "max_depth": 5,
+      "learning_rate": 0.05,
+      "gamma": 0.2,
+      "colsample_bytree": 0.8
+    },
+    "feature_selection": {
+      "n_estimators": 100,
+      "max_depth": 5,
+      "threshold": "median"
+    },
+    "random_forest": {
+      "n_estimators": 150,
+      "max_depth": 12,
+      "min_samples_leaf": 10
+    }
+  },
+  "environment": {
+    "python": "3.11.15 | packaged by Anaconda, Inc. | (main, Mar 11 2026, 17:12:15) [MSC v.1942 64 bit (AMD64)]",
+    "platform": "Windows-10-10.0.26200-SP0",
+    "pandas": "3.0.3",
+    "numpy": "2.4.6",
+    "scikit_learn": "1.9.0",
+    "xgboost": "3.2.0"
+  },
+  "source_sha256": {
+    "src/__init__.py": "e401049cbd4926f39f82b3e27ab9f6e7772455e8b7c341195b0ffd0eba56bdc5",
+    "src/artifacts.py": "2b7a184e807409ec9944343d95e913775fbfa9a8d8a47af7ed746170d4fdc068",
+    "src/bi.py": "9680bf82c0e5e926560aaaa1236ce87e2b407b1a67201f576e58327d8ac15387",
+    "src/config.py": "90ed9ab3e596ea3862ea1b5e429c6b547f8c06704840818f7d0c371d81405982",
+    "src/data.py": "458a978ba8155bafaa4d051e8964980ab941bacaea18ae0e96a8ff1675ed83ff",
+    "src/evaluation.py": "db0fd41b14ca8b7feb64a3bbdc63de85f2ee380c76ce175a26f0c80a5b9d419d",
+    "src/export_predictions.py": "c607836a11f0c1ce76b0b9815a5dba635e927d3502c1375284cbb21b207d1c82",
+    "src/features.py": "1b0d94ebdfc5c61b7053bd4695be3471443cb3f26742e6b6493d368e2f8640b6",
+    "src/models.py": "00c1e92db121c0189ed5c07ffef5e462e48ad7269289128a52913f9081070f37",
+    "src/preprocessing.py": "98bd0794fce896d7da3047c73b04fa04c5fa99c351d46f79229f156a5f8cd826",
+    "src/reporting.py": "755fe8d4d45304e3ab0861ce42e808e884ada9e8c59636cc94ec4e49de76978d",
+    "src/schema.py": "e29d63b49cfdf9955a1f81bfe467630afaada7fc54699e65eac259ab5c447084",
+    "src/train.py": "8667f9a23ac99041b7bdc0081ccfad1e26c3bcbc6d3a375e0074b0c18c875944"
+  },
+  "artifacts": {
+    ".python-version": {
+      "path": "outputs/runs/20261027T175000746489Z-71d14d34/.python-version",
+      "sha256": "db82937e1f1830581a9553c7814f5c5fcacb6dfdef8310b43e9a812c887acaf5",
+      "role": "configuration/runtime snapshot"
+    },
+    "calibration": {
+      "path": "outputs/runs/20261027T175000746489Z-71d14d34/calibration.png",
+      "sha256": "166d914e0a23a22e6c5169c9ef9860a5b2b2242922b9bb76ba9350e67866cd31",
+      "role": "outer-holdout evaluation evidence"
+    },
+    "calibration_curve": {
+      "path": "outputs/runs/20261027T175000746489Z-71d14d34/calibration_curve.csv",
+      "sha256": "06bf7c5f81f22bb6949f0a5a7d79c3f4a26cc2f5d161c5c2918de3aa77c5d055",
+      "role": "outer-holdout evaluation evidence"
+    },
+    "config": {
+      "path": "outputs/runs/20261027T175000746489Z-71d14d34/config.yaml",
+      "sha256": "5080f08f288b32abcdcdca2aaec5a054c15f9a0ec76116a59243d089e505dbaa",
+      "role": "configuration/runtime snapshot"
+    },
+    "evaluation_model": {
+      "path": "outputs/runs/20261027T175000746489Z-71d14d34/evaluation_model.joblib",
+      "sha256": "c05a64379a94013e031f6c2ec455caba2fc4edb112ff71105f2003c6d49f9543",
+      "role": "outer-fit model; holdout excluded from fitting"
+    },
+    "final_model": {
+      "path": "outputs/runs/20261027T175000746489Z-71d14d34/final_model.joblib",
+      "sha256": "7e7746f360521a1a94d9c438ce3c0825256f64bddf0a28fc1a427bfbeabf936d",
+      "role": "deployment; all labeled rows"
+    },
+    "holdout_predictions": {
+      "path": "outputs/runs/20261027T175000746489Z-71d14d34/holdout_predictions.csv",
+      "sha256": "cc7286456e423d8c40e8578e41a6096428a45b2f162d4f48362b8ec16ed80aa8",
+      "role": "outer-holdout evaluation evidence"
+    },
+    "model_comparison": {
+      "path": "outputs/runs/20261027T175000746489Z-71d14d34/model_comparison.csv",
+      "sha256": "2d32e0c7df86f3d7948691291dcc32336e6772177ab2889e1344f6a54a6d5246",
+      "role": "outer-holdout evaluation evidence"
+    },
+    "requirements.lock": {
+      "path": "outputs/runs/20261027T175000746489Z-71d14d34/requirements.lock.txt",
+      "sha256": "89168e608ee3274fbf5d7d83189bc7871c9aab75791bb84b89659e47f5247b5e",
+      "role": "configuration/runtime snapshot"
+    },
+    "split_assignments": {
+      "path": "outputs/runs/20261027T175000746489Z-71d14d34/split_assignments.csv",
+      "sha256": "4d77d28020e44bd20f1de60718d4241be9851920f0e203705cd670ee4eea4063",
+      "role": "outer partition and calibration fold identity"
+    },
+    "threshold_metrics": {
+      "path": "outputs/runs/20261027T175000746489Z-71d14d34/threshold_metrics.csv",
+      "sha256": "58b250d000260965e4ce3a4903f8e951866e0b66fff822997c8025c35bf84124",
+      "role": "outer-holdout evaluation evidence"
+    }
+  },
+  "current_outputs": {
+    "model_comparison": "outputs/model_comparison.csv",
+    "threshold_metrics": "outputs/threshold_metrics.csv",
+    "calibration_curve": "outputs/calibration_curve.csv",
+    "holdout_predictions": "outputs/holdout_predictions.csv",
+    "split_assignments": "outputs/split_assignments.csv",
+    "calibration": "outputs/calibration.png"
+  },
+  "final_model_path": "models/churn_xgb_pipeline.joblib",
+  "run_manifest": "outputs/runs/20261027T175000746489Z-71d14d34/metrics.json"
 }

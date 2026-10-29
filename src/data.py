@@ -7,26 +7,19 @@ from pathlib import Path
 import pandas as pd
 
 from src.config import load_config, resolve_path
-from src.features import engineer_features
-
-
-def clean_total_charges(df: pd.DataFrame) -> pd.DataFrame:
-    """Coerce TotalCharges to numeric and fill missing values with 0."""
-    out = df.copy()
-    out["TotalCharges"] = pd.to_numeric(out["TotalCharges"], errors="coerce")
-    out.fillna(0, inplace=True)
-    return out
+from src.schema import clean_total_charges, clean_customer_data, validate_dataset, validate_target
 
 
 def load_raw_data(
     train_path: str | Path | None = None,
     test_path: str | Path | None = None,
+    *, config_path: str | Path | None = None,
 ) -> tuple[pd.DataFrame, pd.DataFrame | None]:
     """Load train (and optional test) CSV files from disk."""
-    if train_path is None or test_path is None:
-        config = load_config()
-        train_path = train_path or resolve_path(config, "train")
-        test_path = test_path or resolve_path(config, "test")
+    if train_path is None or config_path is not None:
+        config = load_config(config_path)
+        train_path = train_path if train_path is not None else resolve_path(config, "train")
+        test_path = test_path if test_path is not None else resolve_path(config, "test")
 
     df_train = pd.read_csv(train_path)
     df_test = None
@@ -36,26 +29,20 @@ def load_raw_data(
 
 
 def load_train_data(train_path: str | Path | None = None) -> pd.DataFrame:
-    """Load, clean, and engineer features for the training set."""
-    config = load_config()
-    path = train_path or resolve_path(config, "train")
-    df = pd.read_csv(path)
-    df = clean_total_charges(df)
-    return engineer_features(df)
+    """Load validated raw fields; pipelines alone learn feature statistics."""
+    path = train_path if train_path is not None else resolve_path(load_config(), "train")
+    return validate_dataset(pd.read_csv(path), require_target=True)
 
 
 def load_test_data(test_path: str | Path | None = None) -> pd.DataFrame:
-    """Load, clean, and engineer features for the test set."""
-    config = load_config()
-    path = test_path or resolve_path(config, "test")
-    df = pd.read_csv(path)
-    df = clean_total_charges(df)
-    return engineer_features(df)
+    """Load validated raw scoring fields; no scoring-batch statistics are fitted."""
+    path = test_path if test_path is not None else resolve_path(load_config(), "test")
+    return validate_dataset(pd.read_csv(path), require_target=False)
 
 
 def add_churn_binary(df: pd.DataFrame) -> pd.DataFrame:
     """Add a binary Churn_binary column for EDA (train data only)."""
     out = df.copy()
     if "Churn" in out.columns:
-        out["Churn_binary"] = out["Churn"].map({"Yes": 1, "No": 0})
+        out["Churn_binary"] = validate_target(out["Churn"]).map({"Yes": 1, "No": 0})
     return out

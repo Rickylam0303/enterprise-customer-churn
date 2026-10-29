@@ -18,9 +18,14 @@ def load_config(config_path: str | Path | None = None) -> dict[str, Any]:
         config = yaml.safe_load(f)
 
     config["_project_root"] = str(PROJECT_ROOT)
+    config["_config_path"] = str(path.resolve())
     config["paths"] = {
         key: str(PROJECT_ROOT / value) for key, value in config["paths"].items()
     }
+    sources = {Path(value).resolve() for key, value in config["paths"].items() if key in {"train", "test"}}
+    outputs = [Path(value).resolve() for key, value in config["paths"].items() if key not in {"train", "test"}]
+    if sources.intersection(outputs) or len(set(outputs)) != len(outputs):
+        raise ValueError("Output paths must be distinct and must not overwrite source CSVs.")
     return config
 
 

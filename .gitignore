@@ -41,6 +41,7 @@ preserve/
 power-bi/DASHBOARD_REVIEW.md
 power-bi/PUBLISH.md
 images/README.md
+images/template.png
 
 # Power BI dev scratch (keep only Executive Overview.pbix in repo)
 power-bi/*.backup.pbix
@@ -54,3 +55,14 @@ power-bi/inventory_pbix.py
 power-bi/rearrange_pbix.py
 power-bi/LAYOUT*.md
 power-bi/MANUAL_LAYOUT.md
+
+# Generated row-level scores / large run artifacts (regenerate from the CSVs).
+outputs/bi_holdout_predictions.csv
+outputs/bi_holdout_predictions.manifest.json
+outputs/final_model_predictions.csv
+outputs/final_model_predictions.manifest.json
+outputs/holdout_predictions.csv
+outputs/split_assignments.csv
+outputs/runs/*/*.joblib
+outputs/runs/*/holdout_predictions.csv
+outputs/runs/*/split_assignments.csv

@@ -15,8 +15,8 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from src.config import load_config, resolve_path
-from src.data import clean_total_charges
-from src.features import engineer_features
+from src.models import require_raw_feature_pipeline, get_feature_pipeline
+from src.artifacts import file_sha256
 from src.preprocessing import prepare_xy
 
 # ---------------------------------------------------------------------------
@@ -72,11 +72,19 @@ def load_pipeline_and_config():
         )
         st.stop()
     pipeline = joblib.load(model_path)
+    try:
+        require_raw_feature_pipeline(pipeline)
+    except ValueError as error:
+        st.error(str(error))
+        st.stop()
     metrics = {}
     metrics_path = resolve_path(config, "metrics")
     if metrics_path.exists():
         with metrics_path.open(encoding="utf-8") as f:
             metrics = json.load(f)
+    if metrics.get("schema_version") != 2 or file_sha256(model_path) != metrics.get("artifacts", {}).get("final_model", {}).get("sha256"):
+        st.error("Model and evaluation results do not belong to the same run. Retrain before scoring.")
+        st.stop()
     return pipeline, config, metrics
 
 
@@ -145,13 +153,16 @@ def recommended_actions(band: str, row: pd.Series) -> list[str]:
 
 
 def build_customer_row(inputs: dict) -> pd.DataFrame:
-    df = pd.DataFrame([inputs])
-    df = clean_total_charges(df)
-    return engineer_features(df)
+    """Return raw input; the fitted pipeline owns all feature engineering."""
+    return pd.DataFrame([inputs])
 
 
 def render_sidebar() -> dict:
     st.sidebar.header("Customer profile")
+
+    # Dependencies outside the form rerun immediately and keep service inputs valid.
+    phone = st.sidebar.selectbox("Phone service", YES_NO)
+    internet = st.sidebar.selectbox("Internet service", ["No", "DSL", "Fiber optic"])
 
     with st.sidebar.form("customer_form"):
         tenure = st.number_input("Tenure (months)", min_value=0, max_value=100, value=12)
@@ -178,21 +189,20 @@ def render_sidebar() -> dict:
         dependents = st.selectbox("Dependents", YES_NO)
 
         st.subheader("Services")
-        phone = st.selectbox("Phone service", YES_NO)
-        multiple_lines = st.selectbox("Multiple lines", YES_NO_PHONE)
-        internet = st.selectbox("Internet service", ["No", "DSL", "Fiber optic"])
+        multiple_lines = st.selectbox("Multiple lines", ["No phone service"] if phone == "No" else YES_NO)
 
         if internet == "No":
             sec_default = "No internet service"
         else:
             sec_default = "No"
 
-        online_sec = st.selectbox("Online security", SERVICE_OPTIONS, index=SERVICE_OPTIONS.index(sec_default))
-        online_bak = st.selectbox("Online backup", SERVICE_OPTIONS, index=SERVICE_OPTIONS.index(sec_default))
-        device_prot = st.selectbox("Device protection", SERVICE_OPTIONS, index=SERVICE_OPTIONS.index(sec_default))
-        tech_sup = st.selectbox("Tech support", SERVICE_OPTIONS, index=SERVICE_OPTIONS.index(sec_default))
-        stream_tv = st.selectbox("Streaming TV", SERVICE_OPTIONS, index=SERVICE_OPTIONS.index(sec_default))
-        stream_mov = st.selectbox("Streaming movies", SERVICE_OPTIONS, index=SERVICE_OPTIONS.index(sec_default))
+        service_options = ["No internet service"] if internet == "No" else YES_NO
+        online_sec = st.selectbox("Online security", service_options)
+        online_bak = st.selectbox("Online backup", service_options)
+        device_prot = st.selectbox("Device protection", service_options)
+        tech_sup = st.selectbox("Tech support", service_options)
+        stream_tv = st.selectbox("Streaming TV", service_options)
+        stream_mov = st.selectbox("Streaming movies", service_options)
 
         submitted = st.form_submit_button("Estimate churn risk", type="primary")
 
@@ -246,9 +256,13 @@ def main() -> None:
     if form["submitted"]:
         df = build_customer_row(form["inputs"])
         X, _ = prepare_xy(df)
-        proba = float(pipeline.predict_proba(X)[0, 1])
+        try:
+            proba = float(pipeline.predict_proba(X)[0, 1])
+        except ValueError as error:
+            st.error(f"Invalid customer profile: {error}")
+            st.stop()
         band, icon = risk_band(proba, thresholds)
-        row = df.iloc[0]
+        row = get_feature_pipeline(pipeline).named_steps["features"].transform(X).iloc[0]
 
         with col_main:
             st.subheader("Risk assessment")
@@ -262,7 +276,7 @@ def main() -> None:
 
             st.progress(min(proba, 1.0))
 
-            st.subheader("Key drivers")
+            st.subheader("Profile-based considerations")
             for driver in profile_drivers(row):
                 st.markdown(f"- {driver}")
 
@@ -285,7 +299,8 @@ def main() -> None:
         if roc is not None:
             st.metric("Holdout ROC-AUC", f"{roc:.3f}")
         st.caption(
-            "Production pipeline: preprocessing → SelectFromModel (XGBoost) → tuned XGBoost. "
+            "Production pipeline: raw profile → fitted features → preprocessing → "
+            "SelectFromModel (XGBoost) → XGBoost → sigmoid calibration. "
             "Trained on Kaggle Playground Series S6E3 data."
         )
 

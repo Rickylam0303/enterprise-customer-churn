@@ -1,0 +1,20 @@
+{
+  "Evaluation Population": 118839,
+  "Historical Churned Customers": 26763,
+  "Historical Churn Rate": 0.22520384722187162,
+  "Predicted High-Risk Customers": 21901,
+  "Predicted High-Risk Rate": 0.18429135216553488,
+  "Mean Calibrated Churn Score": 0.22600843418572394,
+  "min_segment_count": 1000,
+  "nonempty_segments": 44,
+  "eligible_segments": 22,
+  "excluded_small_segments": 22,
+  "run_id": "20261027T175000746489Z-71d14d34",
+  "prediction_scope": "holdout",
+  "model_version": "c05a64379a94",
+  "risk_thresholds": {
+    "low": 0.3,
+    "high": 0.6
+  },
+  "input_sha256": "71d14d34d3e857da95cc092d55c4ef563bb7f43c6d866be34801dbdad2b40938"
+}

@@ -1,0 +1,76 @@
+{
+  "name": "Churn Portfolio",
+  "dataColors": [
+    "#167D9A",
+    "#273D64",
+    "#B96F2B",
+    "#5B8C86",
+    "#8297B1",
+    "#A3B6C6"
+  ],
+  "foreground": "#20334D",
+  "foregroundNeutralSecondary": "#66788A",
+  "foregroundNeutralTertiary": "#DDE5ED",
+  "background": "#FFFFFF",
+  "backgroundLight": "#F3F6FA",
+  "backgroundNeutral": "#DDE5ED",
+  "tableAccent": "#167D9A",
+  "good": "#3A8870",
+  "neutral": "#B96F2B",
+  "bad": "#B85748",
+  "textClasses": {
+    "callout": {
+      "fontSize": 30,
+      "fontFace": "Segoe UI Semibold",
+      "color": "#20334D"
+    },
+    "title": {
+      "fontSize": 14,
+      "fontFace": "Segoe UI Semibold",
+      "color": "#20334D"
+    },
+    "header": {
+      "fontSize": 12,
+      "fontFace": "Segoe UI Semibold",
+      "color": "#20334D"
+    },
+    "label": {
+      "fontSize": 11,
+      "fontFace": "Segoe UI",
+      "color": "#66788A"
+    }
+  },
+  "visualStyles": {
+    "*": {
+      "*": {
+        "title": [
+          {
+            "fontColor": {
+              "solid": {
+                "color": "#20334D"
+              }
+            },
+            "fontSize": 14,
+            "fontFamily": "Segoe UI Semibold"
+          }
+        ],
+        "dropShadow": [
+          {
+            "show": false
+          }
+        ],
+        "background": [
+          {
+            "show": true,
+            "color": {
+              "solid": {
+                "color": "#FFFFFF"
+              }
+            },
+            "transparency": 0
+          }
+        ]
+      }
+    }
+  }
+}

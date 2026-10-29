@@ -24,8 +24,12 @@ CALCULATE (
 Churn Rate =
 DIVIDE ( [Churned Customers], [Total Customers] )
 
-At Risk Count =
+Historical Churned Customers =
 [Churned Customers]
+
+// Backward compatibility only: relabel this existing card "Historical Churned Customers".
+At Risk Count =
+[Historical Churned Customers]
 
 Avg Tenure =
 AVERAGE ( train[tenure] )
@@ -94,8 +98,9 @@ CALCULATE (
 // Display folder: Churn Metrics — Retention playbook
 // ============================================================================
 
-// Minimum sample size for segment tables (plan: count >= threshold)
-Segment Min Count Threshold = 1000
+// Refreshed M query adds the evaluated run's threshold as a constant column.
+Segment Min Count Threshold =
+SELECTEDVALUE ( train[segment_min_count], 1000 )
 
 Is Valid Segment =
 [Segment Customer Count] >= [Segment Min Count Threshold]
@@ -109,16 +114,23 @@ IF (
 )
 
 // Rank segments by churn rate within current filter context
+// Rank eligible Contract × tenure × InternetService combinations, not customer rows.
 Segment Churn Rank =
+VAR MinimumN = [Segment Min Count Threshold]
+VAR Segments =
+    ADDCOLUMNS (
+        SUMMARIZE (
+            ALLSELECTED ( train ),
+            train[Contract], train[tenure_bucket], train[InternetService]
+        ),
+        "__n", CALCULATE ( [Segment Customer Count] ),
+        "__rate", CALCULATE ( [Segment Churn Rate] )
+    )
+VAR Eligible = FILTER ( Segments, [__n] >= MinimumN )
+RETURN
 IF (
     [Is Valid Segment],
-    RANKX (
-        ALLSELECTED ( train ),
-        [Segment Churn Rate],
-        ,
-        DESC,
-        DENSE
-    ),
+    RANKX ( Eligible, [__rate], [Segment Churn Rate], DESC, DENSE ),
     BLANK ()
 )
 
@@ -154,7 +166,7 @@ Churn Rate vs Overall =
 
 // ============================================================================
 // Display folder: ML Predictions — Predicted risk view (joined from Python)
-// Export: python -m src.export_predictions → outputs/bi_train_predictions.csv
+// Export: python -m src.export_predictions --scope holdout → outputs/bi_holdout_predictions.csv
 // ============================================================================
 
 Avg Predicted Churn Probability =
@@ -179,8 +191,12 @@ CALCULATE (
 )
 
 // KPI: customers flagged High by XGBoost (matches Streamlit risk band)
-ML At Risk Count =
+Predicted High-Risk Customers =
 [Predicted High Risk Count]
+
+// Backward-compatible binding; card caption must be "Predicted High-Risk Customers".
+ML At Risk Count =
+[Predicted High-Risk Customers]
 
 Predicted High Risk Rate =
 DIVIDE ( [Predicted High Risk Count], [Total Customers] )
@@ -211,3 +227,11 @@ Segment Actual vs Predicted Gap =
 // Model calibration check: avg predicted proba should track actual churn rate
 Calibration Gap =
 [Churn Rate] - [Avg Predicted Churn Probability]
+
+// Add this as a visual-level filter: Actionable Segment = 1.
+// Also bind Valid Segment Churn Rate, not the unguarded descriptive rate.
+Actionable Segment =
+IF ( [Is Valid Segment], 1, 0 )
+
+Historical Evaluation Population =
+COUNTROWS ( train )

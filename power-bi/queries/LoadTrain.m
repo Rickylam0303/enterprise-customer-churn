@@ -1,14 +1,27 @@
 // Power Query (M) — Load and transform train.csv for churn dashboard
 // Paste into Power BI Desktop: Home → Transform data → Advanced Editor
-// Update ProjectRoot parameter to your local clone path.
+// First create ProjectFilesSource from its companion M file; disable its load.
+// Update ProjectRoot here AND in ProjectFilesSource when changing the clone path.
+// Staging design: syntax reviewed; successful Desktop refresh is still pending.
 
 let
     // --- Parameter: project root (folder containing data/raw/train.csv) ---
-    ProjectRoot = "C:\Users\6c10r\OneDrive\Personal\01_career\03_Portfolio_&_Projects\FYP project",
+    ProjectRoot = "C:\Users\6c10r\Personal\02_projects\01_data\FYP_project",
+
+    // One folder connector. Downstream steps transform only its binary values.
+    // Select exact paths and keep existing privacy settings unchanged.
+    ProjectFiles = ProjectFilesSource,
+    ReadProjectFile = (relativePath as text) as binary =>
+        let
+            expectedPath = ProjectRoot & "\" & relativePath,
+            matches = Table.SelectRows(ProjectFiles, each [Folder Path] & [Name] = expectedPath)
+        in
+            if Table.RowCount(matches) <> 1 then error "Expected exactly one project file: " & relativePath
+            else matches{0}[Content],
 
     // --- Load CSV ---
     Source = Csv.Document(
-        File.Contents(ProjectRoot & "\data\raw\train.csv"),
+        ReadProjectFile("data\raw\train.csv"),
         [Delimiter = ",", Columns = 21, Encoding = 65001, QuoteStyle = QuoteStyle.Csv]
     ),
     PromotedHeaders = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
@@ -19,10 +32,10 @@ let
         {
             {"id", Int64.Type},
             {"gender", type text},
-            {"SeniorCitizen", Int64.Type},
+            {"SeniorCitizen", type number},
             {"Partner", type text},
             {"Dependents", type text},
-            {"tenure", Int64.Type},
+            {"tenure", type number},
             {"PhoneService", type text},
             {"MultipleLines", type text},
             {"InternetService", type text},
@@ -41,22 +54,31 @@ let
         }
     ),
 
-    // --- Clean TotalCharges (matches src/data.py clean_total_charges) ---
-    // Trim whitespace, coerce to number, replace null/blank with 0
-    TrimmedTotalCharges = Table.TransformColumns(
+    // Validate binary SeniorCitizen before integer conversion (no rounding).
+    ValidatedSeniorCitizen = Table.TransformColumns(
         TypedColumns,
-        {{"TotalCharges", each Text.Trim(Text.From(_)), type text}}
+        {{"SeniorCitizen", each if _ = 0 or _ = 1 then _ else error "SeniorCitizen must be 0 or 1.", Int64.Type}}
     ),
-    ParsedTotalCharges = Table.TransformColumns(
-        TrimmedTotalCharges,
-        {{"TotalCharges", each try Number.From(_) otherwise null, type number}}
+    // Missing TotalCharges is zero only for a zero-month customer; corruption fails.
+    WithValidatedCharges = Table.AddColumn(
+        ValidatedSeniorCitizen,
+        "ValidatedTotalCharges",
+        each
+            let
+                chargeText = if [TotalCharges] = null then "" else Text.Trim(Text.From([TotalCharges])),
+                parsed =
+                    if chargeText = "" then
+                        if [tenure] = 0 then 0 else error "Missing TotalCharges requires tenure=0."
+                    else Number.FromText(chargeText, "en-US")
+            in
+                if [MonthlyCharges] = null or [MonthlyCharges] < 0 then error "MonthlyCharges must be non-negative."
+                else if parsed < 0 then error "TotalCharges must be non-negative."
+                else parsed,
+        type number
     ),
-    FilledTotalCharges = Table.ReplaceValue(
-        ParsedTotalCharges,
-        null,
-        0,
-        Replacer.ReplaceValue,
-        {"TotalCharges"}
+    FilledTotalCharges = Table.RenameColumns(
+        Table.RemoveColumns(WithValidatedCharges, {"TotalCharges"}),
+        {{"ValidatedTotalCharges", "TotalCharges"}}
     ),
 
     // --- Tenure bucket for slicers and matrix (matches EDA notebook) ---
@@ -65,7 +87,9 @@ let
         FilledTotalCharges,
         "tenure_bucket",
         each
-            if [tenure] <= 6 then "0-6"
+            if [tenure] = null or [tenure] < 0 or [tenure] > 100 or Number.Mod([tenure], 1) <> 0 then
+                error "tenure must contain whole months between 0 and 100, with no missing values."
+            else if [tenure] <= 6 then "0-6"
             else if [tenure] <= 12 then "6-12"
             else if [tenure] <= 24 then "12-24"
             else if [tenure] <= 60 then "24-60"
@@ -138,10 +162,13 @@ let
         type text
     ),
 
+    // Load the same run's policy; this is not a hard-coded visual-only threshold.
+    EvaluationMetadata = Json.Document(ReadProjectFile("outputs\bi_kpis.json")),
+
     // --- Join ML predictions (run: python -m src.export_predictions) ---
     PredictionsSource = Csv.Document(
-        File.Contents(ProjectRoot & "\outputs\bi_train_predictions.csv"),
-        [Delimiter = ",", Columns = 4, Encoding = 65001, QuoteStyle = QuoteStyle.Csv]
+        ReadProjectFile("outputs\bi_holdout_predictions.csv"),
+        [Delimiter = ",", Columns = 7, Encoding = 65001, QuoteStyle = QuoteStyle.Csv]
     ),
     PredictionsHeaders = Table.PromoteHeaders(PredictionsSource, [PromoteAllScalars = true]),
     TypedPredictions = Table.TransformColumnTypes(
@@ -150,10 +177,24 @@ let
             {"id", Int64.Type},
             {"Churn", type text},
             {"predicted_proba", type number},
-            {"risk_band", type text}
+            {"risk_band", type text},
+            {"prediction_scope", type text},
+            {"model_version", type text},
+            {"run_id", type text}
         }
     ),
-    PredictionsSlim = Table.SelectColumns(TypedPredictions, {"id", "predicted_proba", "risk_band"}),
+    // Historical ML evaluation is explicitly restricted to the held-out population.
+    ValidatedPredictions =
+        if Table.RowCount(TypedPredictions) <> Table.RowCount(Table.Distinct(TypedPredictions, {"id"})) then
+            error "Duplicate prediction IDs."
+        else if not List.AllTrue(List.Transform(TypedPredictions[prediction_scope], each _ = "holdout")) then
+            error "BI historical evaluation requires holdout predictions."
+        else if List.Count(List.Distinct(TypedPredictions[run_id])) <> 1 or List.Count(List.Distinct(TypedPredictions[model_version])) <> 1 then
+            error "Predictions must belong to one run and one evaluation model."
+        else if List.First(TypedPredictions[run_id]) <> EvaluationMetadata[run_id] then
+            error "Prediction and KPI manifests belong to different runs."
+        else TypedPredictions,
+    PredictionsSlim = Table.SelectColumns(ValidatedPredictions, {"id", "predicted_proba", "risk_band", "prediction_scope", "model_version", "run_id"}),
 
     MergedPredictions = Table.NestedJoin(
         AddedSeniorCitizenLabel,
@@ -161,18 +202,29 @@ let
         PredictionsSlim,
         {"id"},
         "ml_pred",
-        JoinKind.LeftOuter
+        JoinKind.Inner
     ),
+    CheckedJoin =
+        if Table.RowCount(MergedPredictions) <> Table.RowCount(PredictionsSlim) then
+            error "Holdout prediction IDs do not match unique source rows."
+        else MergedPredictions,
     ExpandedPredictions = Table.ExpandTableColumn(
-        MergedPredictions,
+        CheckedJoin,
         "ml_pred",
-        {"predicted_proba", "risk_band"},
-        {"predicted_proba", "risk_band"}
+        {"predicted_proba", "risk_band", "prediction_scope", "model_version", "run_id"},
+        {"predicted_proba", "risk_band", "prediction_scope", "model_version", "run_id"}
+    ),
+
+    WithSamplePolicy = Table.AddColumn(
+        ExpandedPredictions,
+        "segment_min_count",
+        each EvaluationMetadata[min_segment_count],
+        Int64.Type
     ),
 
     // --- Risk band sort order for slicers (Low → Medium → High) ---
     AddedRiskBandSort = Table.AddColumn(
-        ExpandedPredictions,
+        WithSamplePolicy,
         "risk_band_sort",
         each
             if [risk_band] = "Low" then 1

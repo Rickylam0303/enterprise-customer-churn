@@ -1,0 +1,56 @@
+paths:
+  train: data/raw/train.csv
+  test: data/raw/test.csv
+  model: models/churn_xgb_pipeline.joblib
+  metrics: outputs/metrics.json
+  predictions: outputs/predictions.csv
+  bi_predictions: outputs/bi_holdout_predictions.csv
+  final_predictions: outputs/final_model_predictions.csv
+  model_comparison: outputs/model_comparison.csv
+  threshold_metrics: outputs/threshold_metrics.csv
+  calibration_curve: outputs/calibration_curve.csv
+  calibration_figure: outputs/calibration.png
+  holdout_predictions: outputs/holdout_predictions.csv
+  split_assignments: outputs/split_assignments.csv
+  bi_kpis: outputs/bi_kpis.json
+  bi_segments: outputs/bi_segments.csv
+  bi_action_segments: outputs/bi_action_segments.csv
+
+portfolio:
+  github: https://github.com/Rickylam0303/enterprise-customer-churn
+  streamlit: https://enterprise-customer-churn-9wmrp4azyunsxvecvfpdxa.streamlit.app
+  power_bi: https://github.com/Rickylam0303/enterprise-customer-churn/tree/master/power-bi  
+
+random_state: 42
+test_size: 0.2
+
+evaluation:
+  calibration_folds: 3
+  decision_threshold: 0.50
+  thresholds: [0.30, 0.50, 0.60]
+  random_forest:
+    n_estimators: 150
+    max_depth: 12
+    min_samples_leaf: 10
+
+risk_thresholds:
+  low: 0.30
+  high: 0.60
+
+bi:
+  min_segment_count: 1000
+
+xgb_best_params:
+  subsample: 0.8
+  reg_lambda: 1.5
+  reg_alpha: 0.1
+  n_estimators: 500
+  max_depth: 5
+  learning_rate: 0.05
+  gamma: 0.2
+  colsample_bytree: 0.8
+
+feature_selection:
+  n_estimators: 100
+  max_depth: 5
+  threshold: median

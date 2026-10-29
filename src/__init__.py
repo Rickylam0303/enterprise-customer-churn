@@ -9,7 +9,7 @@ from src.data import (
     load_train_data,
 )
 from src.evaluation import compute_metrics, evaluate_model, get_feature_importances
-from src.features import engineer_features
+from src.features import FeatureEngineer, engineer_features, make_tenure_groups
 from src.models import (
     build_baseline_pipelines,
     build_lr_pipeline,
@@ -27,6 +27,8 @@ from src.preprocessing import (
 )
 
 __all__ = [
+    "FeatureEngineer",
+    "make_tenure_groups",
     "add_churn_binary",
     "build_baseline_pipelines",
     "build_lr_pipeline",

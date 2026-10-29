@@ -8,8 +8,10 @@ import pandas as pd
 from sklearn.compose import ColumnTransformer
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from src.schema import validate_target
 
 NUMERIC_COLS = [
+    "SeniorCitizen",
     "tenure",
     "MonthlyCharges",
     "TotalCharges",
@@ -45,7 +47,7 @@ DROP_COLS = ["Churn", "id", "customerID", "Churn_binary"]
 
 
 def get_feature_columns(df: pd.DataFrame) -> list[str]:
-    """Return model input column names from an engineered dataframe."""
+    """Return raw model input columns, excluding IDs and targets."""
     return [col for col in df.columns if col not in DROP_COLS]
 
 
@@ -66,13 +68,13 @@ def build_preprocessor(
 
 
 def prepare_xy(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series | None]:
-    """Split engineered dataframe into features X and optional target y."""
+    """Separate raw profiles and target before any feature statistics are fitted."""
     feature_cols = get_feature_columns(df)
     X = df[feature_cols].copy()
 
     y = None
     if "Churn" in df.columns:
-        y = df["Churn"].map({"Yes": 1, "No": 0})
+        y = validate_target(df["Churn"]).map({"Yes": 1, "No": 0}).astype(int)
 
     return X, y
 
@@ -93,7 +95,7 @@ def prepare_datasets(
     df: pd.DataFrame,
     config: dict[str, Any] | None = None,
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
-    """Prepare stratified train/test split from an engineered training dataframe."""
+    """Prepare a raw-profile split; model pipelines fit their own feature statistics."""
     if config is None:
         from src.config import load_config
 

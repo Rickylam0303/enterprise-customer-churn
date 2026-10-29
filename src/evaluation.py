@@ -17,6 +17,9 @@ from sklearn.metrics import (
     precision_score,
     recall_score,
     roc_auc_score,
+    average_precision_score,
+    brier_score_loss,
+    log_loss,
 )
 from sklearn.pipeline import Pipeline
 
@@ -33,6 +36,9 @@ def compute_metrics(
         "recall": float(recall_score(y_true, y_pred, zero_division=0)),
         "f1": float(f1_score(y_true, y_pred, zero_division=0)),
         "roc_auc": float(roc_auc_score(y_true, y_proba)),
+        "average_precision": float(average_precision_score(y_true, y_proba)),
+        "brier": float(brier_score_loss(y_true, y_proba)),
+        "log_loss": float(log_loss(y_true, y_proba, labels=[0, 1])),
     }
 
 
@@ -75,6 +81,8 @@ def get_feature_importances(
     top_n: int = 20,
 ) -> pd.DataFrame:
     """Extract ranked feature importances from a fitted XGB/RF production pipeline."""
+    from src.models import get_feature_pipeline
+    pipeline = get_feature_pipeline(pipeline)
     preprocessor = pipeline.named_steps["preprocessor"]
     feature_names = preprocessor.get_feature_names_out()
 
@@ -96,3 +104,31 @@ def get_feature_importances(
     ).sort_values("importance", ascending=False)
 
     return importance_df.head(top_n).reset_index(drop=True)
+
+
+def threshold_metrics(y, probabilities, thresholds):
+    """Evaluate prespecified thresholds; never optimize them on this dataset."""
+    rows = []
+    for threshold in thresholds:
+        predicted = np.asarray(probabilities) >= threshold
+        tn, fp, fn, tp = confusion_matrix(y, predicted, labels=[0, 1]).ravel()
+        rows.append({
+            "threshold": float(threshold), "n": len(y), "selected": int(predicted.sum()),
+            "workload": float(predicted.mean()), "tn": int(tn), "fp": int(fp),
+            "fn": int(fn), "tp": int(tp),
+            "precision": float(precision_score(y, predicted, zero_division=0)),
+            "recall": float(recall_score(y, predicted, zero_division=0)),
+            "f1": float(f1_score(y, predicted, zero_division=0)),
+        })
+    return rows
+
+
+def calibration_bins(y, probabilities, n_bins=10):
+    frame = pd.DataFrame({"actual": np.asarray(y), "score": np.asarray(probabilities)})
+    frame["bin"] = pd.cut(frame.score, np.linspace(0, 1, n_bins + 1), include_lowest=True)
+    grouped = frame.groupby("bin", observed=True).agg(
+        n=("actual", "size"), mean_score=("score", "mean"), actual_rate=("actual", "mean"),
+    ).reset_index()
+    grouped["bin"] = grouped["bin"].astype(str)
+    ece = float((grouped.n * (grouped.mean_score - grouped.actual_rate).abs()).sum() / len(frame))
+    return grouped, ece

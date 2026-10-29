@@ -10,9 +10,35 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_selection import SelectFromModel
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
+from sklearn.calibration import CalibratedClassifierCV
+from sklearn.model_selection import StratifiedKFold
 from xgboost import XGBClassifier
 
 from src.preprocessing import build_preprocessor
+from src.features import FeatureEngineer
+
+
+def get_feature_pipeline(model) -> Pipeline:
+    """Unwrap the single full-fit estimator in ensemble=False calibration."""
+    if isinstance(model, CalibratedClassifierCV):
+        calibrated = getattr(model, "calibrated_classifiers_", [])
+        if len(calibrated) != 1:
+            raise ValueError("Expected one full-fit estimator (calibration ensemble=False).")
+        return calibrated[0].estimator
+    return model
+
+
+def require_raw_feature_pipeline(model) -> None:
+    """Reject artifacts lacking fitted raw features or the SeniorCitizen input."""
+    pipeline = get_feature_pipeline(model)
+    steps = getattr(pipeline, "named_steps", {})
+    preprocessor = steps.get("preprocessor")
+    numeric = next((cols for name, _, cols in getattr(preprocessor, "transformers", []) if name == "num"), [])
+    if not isinstance(steps.get("features"), FeatureEngineer) or "SeniorCitizen" not in numeric:
+        raise ValueError(
+            "Legacy model artifact lacks the current raw-profile/SeniorCitizen schema. "
+            "Retrain with python -m src.train, then rerun python -m src.export_predictions."
+        )
 
 
 def compute_scale_pos_weight(y: pd.Series | np.ndarray) -> float:
@@ -20,7 +46,28 @@ def compute_scale_pos_weight(y: pd.Series | np.ndarray) -> float:
     y_arr = np.asarray(y)
     positives = y_arr.sum()
     negatives = len(y_arr) - positives
+    if positives == 0 or negatives == 0:
+        raise ValueError("Both churn classes are required for training.")
     return float(negatives / positives)
+
+
+class TrainingWeightedXGBClassifier(XGBClassifier):
+    """Recompute class weight from each fit's labels, including calibration folds."""
+
+    def fit(self, X, y, **kwargs):
+        self.set_params(scale_pos_weight=compute_scale_pos_weight(y))
+        return super().fit(X, y, **kwargs)
+
+
+def build_calibrated_model(pipeline: Pipeline, folds: int = 3, random_state: int = 42):
+    """Learn sigmoid calibration from OOF training scores; refit base on all fit rows."""
+    if folds < 2:
+        raise ValueError("Calibration requires at least two stratified folds.")
+    return CalibratedClassifierCV(
+        estimator=pipeline, method="sigmoid",
+        cv=StratifiedKFold(n_splits=folds, shuffle=True, random_state=random_state),
+        ensemble=False, n_jobs=1,
+    )
 
 
 def _xgb_classifier(
@@ -36,7 +83,7 @@ def _xgb_classifier(
         "n_jobs": -1,
     }
     params.update(kwargs)
-    return XGBClassifier(**params)
+    return TrainingWeightedXGBClassifier(**params)
 
 
 def build_lr_pipeline(
@@ -50,7 +97,7 @@ def build_lr_pipeline(
         class_weight="balanced", random_state=random_state, max_iter=1000
     )
 
-    steps: list[tuple[str, Any]] = [("preprocessor", preprocessor)]
+    steps: list[tuple[str, Any]] = [("features", FeatureEngineer()), ("preprocessor", preprocessor)]
     if with_feature_selection:
         selector = SelectFromModel(
             LogisticRegression(
@@ -73,6 +120,8 @@ def build_rf_pipeline(
     random_state: int = 42,
     n_estimators: int = 350,
     with_feature_selection: bool = False,
+    max_depth: int | None = None,
+    min_samples_leaf: int = 1,
 ) -> Pipeline:
     """Random forest baseline pipeline."""
     preprocessor = preprocessor or build_preprocessor()
@@ -81,9 +130,11 @@ def build_rf_pipeline(
         random_state=random_state,
         n_estimators=n_estimators,
         n_jobs=-1,
+        max_depth=max_depth,
+        min_samples_leaf=min_samples_leaf,
     )
 
-    steps: list[tuple[str, Any]] = [("preprocessor", preprocessor)]
+    steps: list[tuple[str, Any]] = [("features", FeatureEngineer()), ("preprocessor", preprocessor)]
     if with_feature_selection:
         selector = SelectFromModel(
             RandomForestClassifier(
@@ -113,7 +164,7 @@ def build_xgb_pipeline(
     feature_selection_cfg = feature_selection_cfg or {}
     classifier_params = classifier_params or {}
 
-    steps: list[tuple[str, Any]] = [("preprocessor", preprocessor)]
+    steps: list[tuple[str, Any]] = [("features", FeatureEngineer()), ("preprocessor", preprocessor)]
     if with_feature_selection:
         selector = SelectFromModel(
             _xgb_classifier(
@@ -151,13 +202,11 @@ def build_baseline_pipelines(
         config = load_config()
 
     random_state = config.get("random_state", 42)
-    preprocessor = build_preprocessor()
     return {
-        "lr": build_lr_pipeline(preprocessor=preprocessor, random_state=random_state),
-        "rf": build_rf_pipeline(preprocessor=preprocessor, random_state=random_state),
+        "lr": build_lr_pipeline(random_state=random_state),
+        "rf": build_rf_pipeline(random_state=random_state),
         "xgb": build_xgb_pipeline(
             scale_pos_weight=scale_pos_weight,
-            preprocessor=preprocessor,
             random_state=random_state,
         ),
     }
@@ -167,7 +216,7 @@ def build_production_pipeline(
     scale_pos_weight: float,
     config: dict[str, Any] | None = None,
 ) -> Pipeline:
-    """Full production pipeline: preprocess → feature selection → tuned XGBoost."""
+    """Raw profiles → fitted features → preprocess → select → tuned XGBoost."""
     if config is None:
         from src.config import load_config
 
