@@ -8,11 +8,11 @@
   "n_train": 475355,
   "n_holdout": 118839,
   "input_data": {
-    "path": "C:\\Users\\6c10r\\Personal\\02_projects\\01_data\\FYP_project\\data\\raw\\train.csv",
+    "path": "data/raw/train.csv",
     "sha256": "71d14d34d3e857da95cc092d55c4ef563bb7f43c6d866be34801dbdad2b40938"
   },
   "config_file": {
-    "path": "C:\\Users\\6c10r\\Personal\\02_projects\\01_data\\FYP_project\\config.yaml",
+    "path": "config.yaml",
     "sha256": "5080f08f288b32abcdcdca2aaec5a054c15f9a0ec76116a59243d089e505dbaa"
   },
   "evaluation_method": {
@@ -583,5 +583,6 @@
     "calibration": "outputs/calibration.png"
   },
   "final_model_path": "models/churn_xgb_pipeline.joblib",
-  "run_manifest": "outputs/runs/20261027T175000746489Z-71d14d34/metrics.json"
+  "run_manifest": "outputs/runs/20261027T175000746489Z-71d14d34/metrics.json",
+  "publication_note": "Local absolute paths were replaced with project-relative paths for publication. Evaluation values and recorded source/artifact checksums are unchanged."
 }

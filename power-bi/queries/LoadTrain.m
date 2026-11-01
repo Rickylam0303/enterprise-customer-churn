@@ -6,7 +6,7 @@
 
 let
     // --- Parameter: project root (folder containing data/raw/train.csv) ---
-    ProjectRoot = "C:\Users\6c10r\Personal\02_projects\01_data\FYP_project",
+    ProjectRoot = "C:\Projects\enterprise-customer-churn",
 
     // One folder connector. Downstream steps transform only its binary values.
     // Select exact paths and keep existing privacy settings unchanged.

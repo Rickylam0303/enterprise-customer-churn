@@ -1,6 +1,6 @@
 // Optional separate action table: only sample-qualified holdout segments are exported.
 let
-    ProjectRoot = "C:\Users\6c10r\Personal\02_projects\01_data\FYP_project",
+    ProjectRoot = "C:\Projects\enterprise-customer-churn",
     // Only reference the staging query; do not mix a direct source with references.
     ReadProjectFile = (relativePath as text) as binary =>
         let

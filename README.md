@@ -10,9 +10,9 @@ A portfolio project exploring **which customer groups have higher observed churn
 
 ![Customer churn dashboard showing customer KPIs and segment comparisons](images/powerbi_overview_portfolio.png)
 
-[Open dashboard in Power BI](<power-bi/Customer Churn.portfolio.pbix>) · [View both pages as PDF](power-bi/dashboard-design-preview.pdf) · [Design notes](docs/dashboard-design.md)
+[View both pages as PDF](power-bi/dashboard-design-preview.pdf) · [Power Query and DAX sources](power-bi/) · [Design notes](docs/dashboard-design.md)
 
-*Current portfolio dashboard, using historical cached data. The latest Python holdout results are reported below; refreshing the dashboard with those scores remains pending.*
+*Current portfolio dashboard, using historical cached data. The latest Python holdout results are reported below; refreshing the dashboard with those scores remains pending. The interactive PBIX is kept locally because it embeds machine-specific source metadata; the public repository provides the PDF preview and M/DAX sources.*
 
 <details>
 <summary>View the retention opportunities page</summary>

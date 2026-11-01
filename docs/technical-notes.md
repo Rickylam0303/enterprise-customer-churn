@@ -6,7 +6,7 @@
 
 Use Python 3.11.15 and a virtual environment. The [dependency lock](../requirements.lock.txt) pins the current Windows pip environment; [requirements-tested.txt](../requirements-tested.txt) is the smaller direct-dependency snapshot. A short Windows venv path avoids Jupyter extension installation hitting path-length limits.
 
-The isolated-environment check passed all 23 tests, `pip check`, and all 139 locked versions. This reused the existing Python interpreter on the same Windows host; other operating systems and a second full-data training run were not validated. [Detailed environment evidence](environment-validation.md).
+The isolated-environment check passed all 23 tests, `pip check`, and all 139 locked versions. This reused the existing Python interpreter on the same Windows host; other operating systems and a second full-data training run were not validated. The check used a fresh isolated venv, `python -m pip check`, the regression suite and the README/run integrity check.
 
 ## Configuration and generated files
 
@@ -43,4 +43,6 @@ The Streamlit demo accepts raw customer profiles. Its profile-based suggestions 
 
 The saved PBIX and screenshots are historical artifacts. The review copy opens in Desktop, but refreshing the latest holdout population remains unfinished after a Formula.Firewall error. A separate ProjectFilesSource staging query is proposed; it has not been successfully refreshed and verified. Keep existing privacy settings. [Desktop integration checklist](power-bi-final-validation.md).
 
-Historical churn counts and predicted high-risk counts are distinct KPIs. Action segments require at least 1,000 customers before ranking. The latest Python summaries are [bi_kpis.json](../outputs/bi_kpis.json), [all segments](../outputs/bi_segments.csv), and [eligible action segments](../outputs/bi_action_segments.csv). M paths must be adjusted separately when using custom export locations.
+Historical churn counts and predicted high-risk counts are distinct KPIs. Action segments require at least 1,000 customers before ranking. The latest Python summaries are [bi_kpis.json](../outputs/bi_kpis.json), [all segments](../outputs/bi_segments.csv), and [eligible action segments](../outputs/bi_action_segments.csv). The M files use an example project root (`C:\Projects\enterprise-customer-churn`); replace it with your clone path in all three queries. M paths must also be adjusted when using custom export locations.
+
+Public metrics use project-relative input/config paths. This publication redaction does not change evaluation values or recorded source/artifact checksums. Local environment logs and machine-specific setup notes are not included.

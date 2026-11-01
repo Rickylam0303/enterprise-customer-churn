@@ -1,7 +1,7 @@
 // Staging query name: ProjectFilesSource. Disable load for this query.
 // Desktop refresh of this staging design remains pending.
 let
-    ProjectRoot = "C:\Users\6c10r\Personal\02_projects\01_data\FYP_project",
+    ProjectRoot = "C:\Projects\enterprise-customer-churn",
     Source = Folder.Files(ProjectRoot),
     RequiredFiles = {
         ProjectRoot & "\data\raw\train.csv",
